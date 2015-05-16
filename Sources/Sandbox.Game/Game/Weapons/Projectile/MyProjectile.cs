@@ -233,7 +233,7 @@ namespace Sandbox.Game.Weapons
             if (damagedEntity is MyCubeGrid && MySession.Static.DestructibleBlocks)
             {
                 var grid = damagedEntity as MyCubeGrid;
-                if (grid.Physics != null && grid.Physics.Enabled)
+                if (!grid.m_noDamage && grid.Physics != null && grid.Physics.Enabled)
                 {
                     bool causeDeformation = false;
                     Vector3I blockPos;

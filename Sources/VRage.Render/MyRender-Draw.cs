@@ -1359,13 +1359,15 @@ namespace VRageRender
                 GetRenderProfiler().StartProfilingBlock("Get from manual cullobjects");
                 foreach (MyCullableRenderObject cullableObject in manualCullObjectListForDraw)
                 {
-                    cullableObject.CulledObjects.GetAll(renderObjectListForDraw, false);
+                    if (cullableObject.CastShadows)
+                        cullableObject.CulledObjects.GetAll(renderObjectListForDraw, false);
                 }
                 GetRenderProfiler().EndProfilingBlock();
 
                 foreach (var nearObject in m_nearObjects)
                 {
-                    renderObjectListForDraw.Add(nearObject);
+                    if(nearObject.CastShadows)
+                        renderObjectListForDraw.Add(nearObject);
                 }
 
                 GetRenderProfiler().EndProfilingBlock();

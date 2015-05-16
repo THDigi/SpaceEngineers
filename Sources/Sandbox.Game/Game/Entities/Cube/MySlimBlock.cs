@@ -889,7 +889,7 @@ namespace Sandbox.Game.Entities.Cube
         /// </summary>
         public void DoDamage(float damage, MyDamageType damageType, bool addDirtyParts = true)
         {
-            if (!MySession.Static.DestructibleBlocks)
+            if (!CubeGrid.m_noDamage && !MySession.Static.DestructibleBlocks)
                 return;
 
             damage *= DamageRatio; // Low-integrity blocks get more damage

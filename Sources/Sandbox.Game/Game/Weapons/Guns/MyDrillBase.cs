@@ -396,7 +396,7 @@ namespace Sandbox.Game.Weapons
             var block = grid.GetCubeBlock(gridSpacePos);
 
             bool createDebris = false;
-            if (!onlyCheck && MySession.Static.DestructibleBlocks)
+            if (!onlyCheck && !grid.m_noDamage && MySession.Static.DestructibleBlocks)
             {    
                 if (block != null && block is IMyDestroyableObject)
                 {

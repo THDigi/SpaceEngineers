@@ -91,6 +91,9 @@ namespace Sandbox.Game
                 {
                     var cube = m_castBlocks.Pop();
 
+                    if (cube.CubeGrid.m_noDamage)
+                        continue;
+
                     Vector3D cubeWorldPosition;
                     cube.ComputeWorldCenter(out cubeWorldPosition);
                     float distanceToExplosion = (float)(cubeWorldPosition - m_explosion.Center).Length();

@@ -671,6 +671,9 @@ namespace Sandbox.Game
                 MyCubeGrid grid = entity as MyCubeGrid;
                 if (grid != null)
                 {
+                    if (grid.m_noDamage)
+                        continue;
+
                     var detectionHalfSize = grid.GridSize / 2 / 1.25f;
                     var invWorldGrid = MatrixD.Invert(grid.WorldMatrix);
 

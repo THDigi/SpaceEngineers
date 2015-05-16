@@ -397,6 +397,8 @@ namespace Sandbox.Game.Entities
                     return;
                 }
                 m_gridRayCastLst.Clear();
+                if (grid.m_noDamage)
+                    return;
                 var block = grid.GetCubeBlock(grid.WorldToGridInteger(hit.Value));
                 //if (block != this.SlimBlock)
                 {

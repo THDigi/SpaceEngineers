@@ -113,6 +113,7 @@ namespace Sandbox.Game.Entities
         internal MyVoxelSegmentation BonesToSend = new MyVoxelSegmentation();
         private int m_bonesSendCounter = 0;
 
+        public bool m_noDamage = true;
         private MyDirtyRegion m_dirtyRegion = new MyDirtyRegion();
         private MyCubeSize m_gridSizeEnum;
         private Vector3I m_min = Vector3I.MaxValue;
@@ -3038,7 +3039,7 @@ namespace Sandbox.Game.Entities
 
         private float ApplyDestructionDeformationInternal(MySlimBlock block, bool sync, float damage = 1f)
         {
-            if (!MySession.Static.DestructibleBlocks)
+            if (m_noDamage || !MySession.Static.DestructibleBlocks)
                 return 0;
 
             m_totalBoneDisplacement = 0.0f;

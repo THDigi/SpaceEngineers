@@ -259,7 +259,7 @@ namespace Sandbox.Game.Entities.Cube
         {
             base.Activate(world, clusterObjectID);
 
-            if (MySession.Static.DestructibleBlocks)
+            if (!m_grid.m_noDamage && MySession.Static.DestructibleBlocks)
                 MarkBreakable((HkWorld)world);
         }
 
@@ -267,14 +267,14 @@ namespace Sandbox.Game.Entities.Cube
         {
             base.ActivateBatch(world, clusterObjectID);
 
-            if (MySession.Static.DestructibleBlocks)
+            if (!m_grid.m_noDamage && MySession.Static.DestructibleBlocks)
                 MarkBreakable((HkWorld)world);
             //DestructionBody.ConnectToWorld((HkWorld)world, 0.05f);
         }
 
         public override void Deactivate(object world)
         {
-            if (MySession.Static.DestructibleBlocks)
+            if (!m_grid.m_noDamage && MySession.Static.DestructibleBlocks)
                 UnmarkBreakable((HkWorld)world);
 
             base.Deactivate(world);
@@ -282,7 +282,7 @@ namespace Sandbox.Game.Entities.Cube
 
         public override void DeactivateBatch(object world)
         {
-            if (MySession.Static.DestructibleBlocks)
+            if (!m_grid.m_noDamage && MySession.Static.DestructibleBlocks)
                 UnmarkBreakable((HkWorld)world);
 
             base.DeactivateBatch(world);
@@ -353,7 +353,7 @@ namespace Sandbox.Game.Entities.Cube
 
             bool deformationPerformed = false;
 
-            if (Sync.IsServer && value.ContactProperties.ImpulseApplied > MyGridShape.BreakImpulse && info.CollidingEntity != null && info.EnableDeformation && MySession.Static.DestructibleBlocks)
+            if (Sync.IsServer && value.ContactProperties.ImpulseApplied > MyGridShape.BreakImpulse && info.CollidingEntity != null && info.EnableDeformation && !m_grid.m_noDamage && MySession.Static.DestructibleBlocks)
             {
                 float deformation = value.SeparatingVelocity;
                 if (info.RubberDeformation)

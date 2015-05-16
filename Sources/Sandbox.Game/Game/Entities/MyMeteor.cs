@@ -365,7 +365,7 @@ namespace Sandbox.Game.Entities
                     return;
                 Sandbox.ModAPI.IMyEntity other = GetOtherEntity(ref value.ContactPointEvent);
                 if (Sync.IsServer)
-                    if (other is MyCubeGrid && MySession.Static.DestructibleBlocks)
+                    if (other is MyCubeGrid && !(other as MyCubeGrid).m_noDamage && MySession.Static.DestructibleBlocks)
                     {
                         DestroyGrid(ref value, other as MyCubeGrid);
                     }

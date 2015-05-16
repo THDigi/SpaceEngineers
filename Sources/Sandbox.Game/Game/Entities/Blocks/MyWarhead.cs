@@ -652,7 +652,7 @@ namespace Sandbox.Game.Entities.Cube
 
         void IMyDestroyableObject.DoDamage(float damage, MyDamageType damageType, bool sync)
         {
-            if (MarkedToExplode || (!MySession.Static.DestructibleBlocks))
+            if (MarkedToExplode || CubeGrid.m_noDamage || (!MySession.Static.DestructibleBlocks))
                 return;
             //if (!IsFunctional)
             //    return false;
