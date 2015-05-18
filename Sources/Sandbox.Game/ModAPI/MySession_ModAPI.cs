@@ -411,5 +411,10 @@ namespace Sandbox.Game.World
         {
             get { return MySession.Static.Gpss; }
         }
+
+        IMyHud IMySession.HUD
+        {
+            get { return Sandbox.Game.Gui.MyGuiScreenHudSpace.Static; }
+        }
     }
 }

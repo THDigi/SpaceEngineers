@@ -30,7 +30,7 @@ using Vector2 = VRageMath.Vector2;
 
 namespace Sandbox.Game.Gui
 {
-    class MyGuiScreenHudSpace : MyGuiScreenHudBase
+    partial class MyGuiScreenHudSpace : MyGuiScreenHudBase
     {
         private MyGuiControlToolbar m_toolbarControl;
         private MyGuiControlBlockInfo m_blockInfo;
@@ -58,6 +58,7 @@ namespace Sandbox.Game.Gui
         public MyGuiScreenHudSpace()
             : base()
         {
+            Static = this;
             RecreateControls(true);
 
             m_markerRender = new MyHudMarkerRender(this);
@@ -229,6 +230,8 @@ namespace Sandbox.Game.Gui
 
             if (!MyHud.MinimalHud)
                 DrawCameraInfo(MyHud.CameraInfo);
+
+            DrawCustomMarkers();
 
             ProfilerShort.Begin("Draw netgraph");
             if (MyFakes.ENABLE_NETGRAPH && MyHud.IsNetgraphVisible)

@@ -191,6 +191,11 @@ namespace Sandbox.Game.GUI.HudViewers
         /// </summary>
         public void DrawLocationMarker(int styleHandle, Vector3D position, MyHudEntityParams hudParams, float targetDamageRatio, float targetArmorRatio, float alphaMultiplifier = 1f)
         {
+            DrawLocationMarker(m_markerStyles[styleHandle], position, hudParams, targetDamageRatio, targetArmorRatio, alphaMultiplifier);
+        }
+
+        public void DrawLocationMarker(MyMarkerStyle markerStyle, Vector3D position, MyHudEntityParams hudParams, float targetDamageRatio, float targetArmorRatio, float alphaMultiplifier = 1f)
+        {
             if (MySession.ControlledEntity == null)
                 return;
 
@@ -207,8 +212,6 @@ namespace Sandbox.Game.GUI.HudViewers
 
             if (projectedPoint.W == 0)
                 return;
-
-            MyMarkerStyle markerStyle = m_markerStyles[styleHandle];
 
             double distance = Vector3D.Distance(position, MySession.ControlledEntity.Entity.WorldMatrix.Translation);
             float maxDistance = hudParams.MaxDistance;

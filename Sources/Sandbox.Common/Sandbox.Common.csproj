@@ -232,6 +232,7 @@
     <Compile Include="ModAPI\IMyButtonPanel.cs" />
     <Compile Include="ModAPI\IMyShipMergeBlock.cs" />
     <Compile Include="ModAPI\Ingame\TerminalActionParameter.cs" />
+    <Compile Include="ModAPI\IMyHud.cs" />
     <Compile Include="ModAPI\Interfaces\IMyDestroyableObject.cs" />
     <Compile Include="ModAPI\IMyIdentity.cs" />
     <Compile Include="ModAPI\Interfaces\IMyInventoryOwner.cs" />
