@@ -16036,6 +16036,7 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="2" />
       <ModelOffset x="0" y="0" z="0" />
+      <Center x="0" y="0" z="1" />
       <Model>Models\Cubes\Small\OreDetector.mwm</Model>
       <Components>
         <Component Subtype="Construction" Count="2" />
@@ -16538,6 +16539,7 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="2" />
       <ModelOffset x="0" y="0" z="0" />
+      <Center x="0" y="0" z="1" />
       <Model>Models\Cubes\Small\antenna.mwm</Model>
       <Components>
         <Component Subtype="SmallTube" Count="1" />

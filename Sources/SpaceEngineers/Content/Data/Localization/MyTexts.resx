@@ -1211,7 +1211,8 @@ Public: Any Steam player can join</value>
 See log for details.</value>
   </data>
   <data name="WorldFileIsCorruptedAndCouldNotBeLoaded" xml:space="preserve">
-    <value>World file is corrupted and could not be loaded.</value>
+    <value>An error occured while loading.
+See log for details.</value>
   </data>
   <data name="Terminal" xml:space="preserve">
     <value>Terminal</value>
