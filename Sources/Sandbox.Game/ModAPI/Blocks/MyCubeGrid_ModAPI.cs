@@ -260,5 +260,10 @@ namespace Sandbox.Game.Entities
             }
             return null;
         }
+
+        Sandbox.ModAPI.Ingame.IMyTerminalBlock Sandbox.ModAPI.Ingame.IMyCubeGrid.GetMainCockpit()
+        {
+            return MainCockpit as Sandbox.ModAPI.Ingame.IMyTerminalBlock;
+        }
     }
 }

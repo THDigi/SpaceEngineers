@@ -17,6 +17,7 @@ using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces;
+using System;
 using System.Diagnostics;
 using System.Text;
 using VRage;
@@ -448,6 +449,44 @@ namespace Sandbox.Game.Entities
             //        GridGyroSystem.ControlTorque = Vector3.Zero;
             //    }
             //}
+
+            pressedControls = MyControlsEnum.NONE;
+            movementInput = Vector3.Zero;
+            rotationInput = Vector3.Zero;
+
+            if (ControllerInfo.IsLocallyHumanControlled())
+            {
+                // TODO ignore this when in a menu or something
+
+                /*
+                foreach (var controlId in MyControls.List)
+                {
+                    if (MyControllerHelper.IsControl(ControlContext, controlId, MyControlStateType.PRESSED))
+                        pressedControls.Add(controlId);
+                }
+                 */
+
+                foreach (MyControlsEnum control in Enum.GetValues(typeof(MyControlsEnum)))
+                {
+                    if (control != MyControlsEnum.NONE && MyControllerHelper.IsControl(ControlContext, MyControls.enumValues[control], MyControlStateType.PRESSED))
+                    {
+                        pressedControls |= control;
+                    }
+                }
+
+                movementInput = MyInput.Static.GetPositionDelta();
+                rotationInput = new Vector3(
+                    MyInput.Static.GetMouseXForGamePlay(),
+                    MyInput.Static.GetMouseYForGamePlay(),
+                    MyControllerHelper.IsControlAnalog(ControlContext, MyControlsSpace.ROLL_RIGHT) - MyControllerHelper.IsControlAnalog(ControlContext, MyControlsSpace.ROLL_LEFT)) * MyInputExtensions.MOUSE_ROTATION_INDICATOR_MULTIPLIER;
+                rotationInput.X -= MyControllerHelper.IsControlAnalog(ControlContext, MyControlsSpace.ROTATION_LEFT);
+                rotationInput.X += MyControllerHelper.IsControlAnalog(ControlContext, MyControlsSpace.ROTATION_RIGHT);
+                rotationInput.Y -= MyControllerHelper.IsControlAnalog(ControlContext, MyControlsSpace.ROTATION_UP);
+                rotationInput.Y += MyControllerHelper.IsControlAnalog(ControlContext, MyControlsSpace.ROTATION_DOWN);
+                rotationInput *= MyEngineConstants.UPDATE_STEPS_PER_SECOND * MyInputExtensions.ROTATION_INDICATOR_MULTIPLIER;
+
+                SyncObject.SendPilotPressedControls(pressedControls, movementInput, rotationInput);
+            }
 
             if (ControllerInfo.Controller != null && MySession.LocalHumanPlayer != null && ControllerInfo.Controller == MySession.LocalHumanPlayer.Controller)
             {
@@ -1884,7 +1923,7 @@ namespace Sandbox.Game.Entities
 
         bool Sandbox.ModAPI.Interfaces.IMyControllableEntity.EnabledLeadingGears
         {
-            get 
+            get
             {
                 var state = CubeGrid.GridSystems.LandingSystem.Locked;
                 return state == MyMultipleEnabledEnum.Mixed || state == MyMultipleEnabledEnum.AllEnabled;

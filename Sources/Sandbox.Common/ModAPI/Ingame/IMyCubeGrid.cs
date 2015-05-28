@@ -55,5 +55,11 @@ namespace Sandbox.ModAPI.Ingame
         VRageMath.Vector3I WorldToGridInteger(VRageMath.Vector3D coords);
 
         string DisplayName { get; }
+
+        /// <summary>
+        /// Gets the block that is set as main cockpit.
+        /// </summary>
+        /// <returns>can be null if no cockpit is set as main</returns>
+        IMyTerminalBlock GetMainCockpit();
     }
 }

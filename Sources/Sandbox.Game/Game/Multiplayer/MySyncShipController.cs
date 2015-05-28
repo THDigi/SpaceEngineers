@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Sandbox.ModAPI.Interfaces;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Common.ObjectBuilders.VRageData;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
 using VRageMath;
+using VRage.Library.Utils;
 using Sandbox.Game.AI;
 using ProtoBuf;
 using SteamSDK;
@@ -76,6 +79,17 @@ namespace Sandbox.Game.Multiplayer
             public BoolBlit SetMainCockpit;
         }
 
+        [MessageIdAttribute(2493, P2PMessageEnum.Reliable)]
+        protected struct UpdatePressedControls : IEntityMessage
+        {
+            public long EntityId;
+            public long GetEntityId() { return EntityId; }
+
+            public MyControlsEnum pressed;
+            public SerializableVector3 movement;
+            public SerializableVector3 rotation;
+        }
+
         static MySyncShipController()
         {
             MySyncLayer.RegisterEntityMessage<MySyncShipController, UpdatePilotRelativeEntryMsg>(UpdatePilotRelativeEntrySuccess, MyMessagePermissions.FromServer, MyTransportMessageEnum.Success);
@@ -84,6 +98,7 @@ namespace Sandbox.Game.Multiplayer
             MySyncLayer.RegisterEntityMessage<MySyncShipController, ControlThrustersMsg>(OnSetControlThrusters, MyMessagePermissions.Any);
             MySyncLayer.RegisterEntityMessage<MySyncShipController, ControlWheelsMsg>(OnSetControlWheels, MyMessagePermissions.Any);
             MySyncLayer.RegisterEntityMessage<MySyncShipController, SetMainCockpitMsg>(OnSetMainCockpit, MyMessagePermissions.Any);
+            MySyncLayer.RegisterEntityMessage<MySyncShipController, UpdatePressedControls>(UpdatePressedControlsSuccess, MyMessagePermissions.Any, MyTransportMessageEnum.Success);
         }
 
         private MyShipController m_shipController;
@@ -116,6 +131,23 @@ namespace Sandbox.Game.Multiplayer
             MySession.Static.SyncLayer.SendMessageToAll(ref msg, MyTransportMessageEnum.Success);
         }
 
+        public void SendPilotPressedControls(MyControlsEnum pressed, Vector3 movement, Vector3 rotation)
+        {
+            UpdatePressedControls msg;
+            msg.EntityId = m_shipController.EntityId;
+            msg.pressed = pressed;
+            msg.movement = movement;
+            msg.rotation = rotation;
+            MySession.Static.SyncLayer.SendMessageToAll(ref msg, MyTransportMessageEnum.Success);
+        }
+
+        private static void UpdatePressedControlsSuccess(MySyncShipController sync, ref UpdatePressedControls msg, MyNetworkClient sender)
+        {
+            var controller = sync.m_shipController as MyShipController;
+            controller.pressedControls = msg.pressed;
+            controller.movementInput = msg.movement;
+            controller.rotationInput = msg.rotation;
+        }
 
         public void SendDampenersUpdate(bool dampenersEnabled)
         {

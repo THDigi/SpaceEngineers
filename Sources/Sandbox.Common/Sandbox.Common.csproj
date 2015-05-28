@@ -271,6 +271,7 @@
     <Compile Include="ModAPI\Interfaces\IMyCameraController.cs" />
     <Compile Include="ModAPI\Interfaces\IMyInventoryItem.cs" />
     <Compile Include="ModAPI\Interfaces\IMyStorage.cs" />
+    <Compile Include="ModAPI\Interfaces\IMyControls.cs" />
     <Compile Include="ModAPI\Interfaces\ITerminalProperty.cs" />
     <Compile Include="ModAPI\Interfaces\ITerminalAction.cs" />
     <Compile Include="ModAPI\MyAPIGateway.cs" />
