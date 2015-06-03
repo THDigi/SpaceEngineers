@@ -16,8 +16,21 @@ using VRageMath;
 
 namespace Sandbox.Game.Gui
 {
-    public class MyGuiScreenOptionsControls : MyGuiScreenBase
+    public class MyGuiScreenOptionsJoystickControls : MyGuiScreenBase
     {
+        // TODO search&replace MyStringId.GetOrCompute(...) with MySpaceText entries
+
+        private enum ControlDropdown
+        {
+            GENERAL,
+            BASE,
+            CHARACTER,
+            BUILD_MODE,
+            SPACESHIP,
+            GUI,
+            VOXEL
+        }
+
         private class ControlButtonData
         {
             public readonly MyControl Control;
@@ -30,11 +43,11 @@ namespace Sandbox.Game.Gui
             }
         }
 
-        MyGuiControlTypeEnum m_currentControlType;
+        ControlDropdown m_currentControlType;
         MyGuiControlCombobox m_controlTypeList;
 
         //  All controls in this screen
-        Dictionary<MyGuiControlTypeEnum, List<MyGuiControlBase>> m_allControls = new Dictionary<MyGuiControlTypeEnum, List<MyGuiControlBase>>();
+        Dictionary<ControlDropdown, List<MyGuiControlBase>> m_allControls = new Dictionary<ControlDropdown, List<MyGuiControlBase>>();
 
         //  List for getting button by input type
         List<MyGuiControlButton> m_key1Buttons;
@@ -55,7 +68,7 @@ namespace Sandbox.Game.Gui
         Vector2 m_controlsOriginLeft;
         Vector2 m_controlsOriginRight;
 
-        public MyGuiScreenOptionsControls()
+        public MyGuiScreenOptionsJoystickControls()
             : base(new Vector2(0.5f, 0.5f), MyGuiConstants.SCREEN_BACKGROUND_COLOR, new Vector2(1200f / 1600f, 1127f / 1200f))
         {
             EnabledBackgroundFade = true;
@@ -102,18 +115,16 @@ namespace Sandbox.Game.Gui
             Controls.Add(resetButton);
 
             //  Page selection combobox
-            m_currentControlType = MyGuiControlTypeEnum.General;
+            m_currentControlType = 0;
             var cBoxPosition = m_controlsOriginRight + 0.5f * MyGuiConstants.CONTROLS_DELTA +
                                new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0) - new Vector2(0.065f, 0);
             m_controlTypeList = new MyGuiControlCombobox(cBoxPosition);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.General, MySpaceTexts.ControlTypeGeneral);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Navigation, MySpaceTexts.ControlTypeNavigation);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.ToolsOrWeapons, MySpaceTexts.ControlTypeToolsOrWeapons);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.ToolsOrWeapons2, MySpaceTexts.ControlTypeToolsOrWeapons2);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Systems1, MySpaceTexts.ControlTypeSystems1);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Systems2, MySpaceTexts.ControlTypeSystems2);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Systems3, MySpaceTexts.ControlTypeSystems3);
-            m_controlTypeList.AddItem((int)MyGuiControlTypeEnum.Spectator, MySpaceTexts.Spectator);
+            m_controlTypeList.AddItem((int)ControlDropdown.BASE, MyStringId.GetOrCompute("Shared"));
+            m_controlTypeList.AddItem((int)ControlDropdown.CHARACTER, MyStringId.GetOrCompute("Character"));
+            m_controlTypeList.AddItem((int)ControlDropdown.BUILD_MODE, MyStringId.GetOrCompute("Build mode"));
+            m_controlTypeList.AddItem((int)ControlDropdown.SPACESHIP, MyStringId.GetOrCompute("Spaceship"));
+            m_controlTypeList.AddItem((int)ControlDropdown.GUI, MyStringId.GetOrCompute("Menus"));
+            m_controlTypeList.AddItem((int)ControlDropdown.VOXEL, MyStringId.GetOrCompute("Voxel editing"));
             m_controlTypeList.SelectItemByKey((int)m_currentControlType);
             Controls.Add(m_controlTypeList);
 
@@ -128,24 +139,28 @@ namespace Sandbox.Game.Gui
 
         private void AddControls()
         {
-            m_key1Buttons = new List<MyGuiControlButton>();
-            m_key2Buttons = new List<MyGuiControlButton>();
-            m_mouseButtons = new List<MyGuiControlButton>();
+            m_joystickButtons = new List<MyGuiControlButton>();
+            m_joystickAxes = new List<MyGuiControlButton>();
 
-            AddControlsByType(MyGuiControlTypeEnum.General);
-            AddControlsByType(MyGuiControlTypeEnum.Navigation);
-            AddControlsByType(MyGuiControlTypeEnum.Systems1);
-            AddControlsByType(MyGuiControlTypeEnum.Systems2);
-            AddControlsByType(MyGuiControlTypeEnum.Systems3);
-            AddControlsByType(MyGuiControlTypeEnum.ToolsOrWeapons);
-            AddControlsByType(MyGuiControlTypeEnum.ToolsOrWeapons2);
-            AddControlsByType(MyGuiControlTypeEnum.Spectator);
+            AddGeneralControls();
+            AddControlsByType(ControlDropdown.BASE);
+            AddControlsByType(ControlDropdown.CHARACTER);
+            AddControlsByType(ControlDropdown.BUILD_MODE);
+            AddControlsByType(ControlDropdown.SPACESHIP);
+            AddControlsByType(ControlDropdown.GUI);
+            AddControlsByType(ControlDropdown.VOXEL);
 
             foreach (var entry in m_allControls)
             {
                 foreach (var control in entry.Value)
                     Controls.Add(control);
                 DeactivateControls(entry.Key);
+            }
+
+            //There are no controls for this category now, so hide it completely and uncomment, when we have new comms controls
+            if (MyFakes.ENABLE_JOYSTICK_SETTINGS)
+            {
+                RefreshJoystickControlEnabling();
             }
         }
 
@@ -181,53 +196,67 @@ namespace Sandbox.Game.Gui
             return button;
         }
 
-        private void AddControlsByType(MyGuiControlTypeEnum type)
+        private void AddControlsByType(ControlDropdown type)
         {
-            //  "General" page is little bit too complex, so I need to create it separately.
-            if (type == MyGuiControlTypeEnum.General)
-            {
-                AddGeneralControls();
-                return;
-            }
-
             var buttonStyle = MyGuiControlButton.GetVisualStyle(MyGuiControlButtonStyleEnum.ControlSetting);
 
             Vector2 controlsOriginRight = m_controlsOriginRight;
             controlsOriginRight.X -= 0.02f;
+
             m_allControls[type] = new List<MyGuiControlBase>();
             float i = 2;
             float buttonScale = 0.85f;
 
-            var controls = MyInput.Static.GetGameControlsList();
+            var buttonLabel = MakeLabel(MyStringId.GetOrCompute("Button"), Vector2.Zero);
+            var axisPressLabel = MakeLabel(MyStringId.GetOrCompute("Axis Press"), Vector2.Zero);
+            var axisLabel = MakeLabel(MySpaceTexts.ScreenOptionsControls_Mouse, Vector2.Zero);
+            var gamepadLabel = MakeLabel(MySpaceTexts.ScreenOptionsControls_Gamepad, Vector2.Zero);
+            var analogAxesLabel = MakeLabel(MySpaceTexts.ScreenOptionsControls_AnalogAxes, Vector2.Zero);
 
-            var keyboardLabel   = MakeLabel(MySpaceTexts.ScreenOptionsControls_Keyboard, Vector2.Zero);
-            var keyboard2Label  = MakeLabel(MySpaceTexts.ScreenOptionsControls_Keyboard2, Vector2.Zero);
-            var mouseLabel      = MakeLabel(MySpaceTexts.ScreenOptionsControls_Mouse, Vector2.Zero);
-            
-            float columnWidth = 1.1f * Math.Max(Math.Max(keyboardLabel.Size.X, keyboard2Label.Size.X),
-                                                Math.Max(mouseLabel.Size.X, buttonStyle.SizeOverride.Value.X));
+            float columnWidth = 1.1f * Math.Max(Math.Max(buttonLabel.Size.X, axisPressLabel.Size.X),
+                                                Math.Max(axisLabel.Size.X, buttonStyle.SizeOverride.Value.X));
 
             var position = (i - 1) * MyGuiConstants.CONTROLS_DELTA + controlsOriginRight;
             position.X += columnWidth * 0.5f; // make labels centered
-            keyboardLabel.Position = position; position.X += columnWidth;
-            keyboard2Label.Position = position; position.X += columnWidth;
-            mouseLabel.Position = position;
+            buttonLabel.Position = position; position.X += columnWidth;
+            axisPressLabel.Position = position; position.X += columnWidth;
+            axisLabel.Position = position;
 
-            m_allControls[type].Add(keyboardLabel);
-            m_allControls[type].Add(keyboard2Label);
-            m_allControls[type].Add(mouseLabel);
+            m_allControls[type].Add(buttonLabel);
+            m_allControls[type].Add(axisPressLabel);
+            m_allControls[type].Add(axisLabel);
 
-            foreach (MyControl control in controls)
+            position.X += columnWidth; gamepadLabel.Position = position;
+            position.X += columnWidth; analogAxesLabel.Position = position;
+
+            m_allControls[type].Add(gamepadLabel);
+            m_allControls[type].Add(analogAxesLabel);
+
+            foreach (var kv in MyControllerHelper.GetControls())
             {
-                if (control.GetControlTypeEnum() == type)
+                if (kv.Key.ToString() == type.ToString())
                 {
                     m_allControls[type].Add(new MyGuiControlLabel(
                         position: m_controlsOriginLeft + i * MyGuiConstants.CONTROLS_DELTA,
-                        text: MyTexts.GetString(control.GetControlName())));
+                        text: "Test")); // MyTexts.GetString(control.GetControlName())
 
                     position = controlsOriginRight + i * MyGuiConstants.CONTROLS_DELTA;
                     position.X += columnWidth * 0.5f;
 
+                    StringBuilder boundText = new StringBuilder("Woot");
+                    //control.AppendBoundButtonNames(ref boundText, device);
+                    //MyControl.AppendUnknownTextIfNeeded(ref boundText, MyTexts.GetString(MySpaceTexts.UnknownControl_None));
+                    var button = new MyGuiControlButton(
+                        position: position,
+                        text: boundText,
+                        onButtonClick: OnControlClick,
+                        visualStyle: MyGuiControlButtonStyleEnum.ControlSetting,
+                        originAlign: MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER);
+                    //button.UserData = new ControlButtonData(control, device);
+
+                    m_allControls[type].Add(button);
+
+                    /*
                     // This is column for keyboard 1
                     var key1Button = MakeControlButton(control, position, MyGuiInputDeviceEnum.Keyboard);
                     m_allControls[type].Add(key1Button);
@@ -246,6 +275,17 @@ namespace Sandbox.Game.Gui
                     m_mouseButtons.Add(mouseButton);
                     position.X += columnWidth;
 
+                    var joyButton = MakeControlButton(control, position, MyGuiInputDeviceEnum.Joystick);
+                    m_allControls[type].Add(joyButton);
+                    m_joystickButtons.Add(joyButton);
+                    position.X += columnWidth;
+
+                    var joyAxis = MakeControlButton(control, position, MyGuiInputDeviceEnum.JoystickAxis);
+                    m_allControls[type].Add(joyAxis);
+                    m_joystickAxes.Add(joyAxis);
+                    position.X += columnWidth;
+                    */
+
                     i += buttonScale;
                 }
             }
@@ -253,39 +293,47 @@ namespace Sandbox.Game.Gui
 
         private void AddGeneralControls()
         {
-            m_allControls[MyGuiControlTypeEnum.General] = new List<MyGuiControlBase>();
+            var context = ControlDropdown.GENERAL;
+            m_allControls[context] = new List<MyGuiControlBase>();
 
+            const float multiplierJoystick = 6.5f;
+            const float multiplierSensitivity = 8;
+            const float multiplierExponent = 9;
+            const float multiplierDeadzone = 10;
 
-            MyGuiControlLabel tmp = MakeLabel(2f, MySpaceTexts.InvertMouseX);
-            m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(2f, MySpaceTexts.InvertMouseX));
-            m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(3f, MySpaceTexts.InvertMouseY));
-            m_allControls[MyGuiControlTypeEnum.General].Add(MakeLabel(4f, MySpaceTexts.MouseSensitivity));
+            m_allControls[context].Add(MakeLabel(multiplierJoystick, MySpaceTexts.Joystick));
+            m_allControls[context].Add(MakeLabel(multiplierSensitivity, MySpaceTexts.JoystickSensitivity));
+            m_allControls[context].Add(MakeLabel(multiplierExponent, MySpaceTexts.JoystickExponent));
+            m_allControls[context].Add(MakeLabel(multiplierDeadzone, MySpaceTexts.JoystickDeadzone));
 
-            m_invertMouseXCheckbox = new MyGuiControlCheckbox(
-                     position: m_controlsOriginRight + 2 * MyGuiConstants.CONTROLS_DELTA,
-                     isChecked: MyInput.Static.GetMouseXInversion(),
-                     originAlign: MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_CENTER);
+            m_joystickCombobox = new MyGuiControlCombobox(m_controlsOriginRight + multiplierJoystick * MyGuiConstants.CONTROLS_DELTA + new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0));
+            m_joystickCombobox.ItemSelected += OnSelectJoystick;
+            AddJoysticksToComboBox();
+            m_allControls[context].Add(m_joystickCombobox);
 
-            m_allControls[MyGuiControlTypeEnum.General].Add(m_invertMouseXCheckbox);
+            m_joystickSensitivitySlider = new MyGuiControlSlider(
+                position: m_controlsOriginRight + multiplierSensitivity * MyGuiConstants.CONTROLS_DELTA + new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0),
+                minValue: 0.1f,
+                maxValue: 6.0f);
+            m_joystickSensitivitySlider.Value = MyInput.Static.GetJoystickSensitivity();
+            m_allControls[context].Add(m_joystickSensitivitySlider);
 
+            m_joystickExponentSlider = new MyGuiControlSlider(
+                position: m_controlsOriginRight + multiplierExponent * MyGuiConstants.CONTROLS_DELTA + new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0),
+                minValue: 1.0f,
+                maxValue: 8.0f);
+            m_joystickExponentSlider.Value = MyInput.Static.GetJoystickExponent();
+            m_allControls[context].Add(m_joystickExponentSlider);
 
-            m_invertMouseYCheckbox = new MyGuiControlCheckbox(
-                 position: m_controlsOriginRight + 3 * MyGuiConstants.CONTROLS_DELTA,
-                 isChecked: MyInput.Static.GetMouseYInversion(),
-                 originAlign: MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_CENTER);
-
-            m_allControls[MyGuiControlTypeEnum.General].Add(m_invertMouseYCheckbox);
-
-            m_mouseSensitivitySlider = new MyGuiControlSlider(
-                position: m_controlsOriginRight + 4 * MyGuiConstants.CONTROLS_DELTA,
+            m_joystickDeadzoneSlider = new MyGuiControlSlider(
+                position: m_controlsOriginRight + multiplierDeadzone * MyGuiConstants.CONTROLS_DELTA + new Vector2(MyGuiConstants.COMBOBOX_MEDIUM_SIZE.X / 2.0f, 0),
                 minValue: 0.0f,
-                maxValue: 3.0f,
-                defaultValue: MyInput.Static.GetMouseSensitivity(),
-                originAlign: MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_CENTER);
-            m_allControls[MyGuiControlTypeEnum.General].Add(m_mouseSensitivitySlider);
+                maxValue: 0.5f);
+            m_joystickDeadzoneSlider.Value = MyInput.Static.GetJoystickDeadzone();
+            m_allControls[context].Add(m_joystickDeadzoneSlider);
         }
 
-        private void DeactivateControls(MyGuiControlTypeEnum type)
+        private void DeactivateControls(ControlDropdown type)
         {
             foreach (var item in m_allControls[type])
             {
@@ -293,7 +341,7 @@ namespace Sandbox.Game.Gui
             }
         }
 
-        private void ActivateControls(MyGuiControlTypeEnum type)
+        private void ActivateControls(ControlDropdown type)
         {
             foreach (var item in m_allControls[type])
             {
@@ -301,9 +349,44 @@ namespace Sandbox.Game.Gui
             }
         }
 
+        private void AddJoysticksToComboBox()
+        {
+            int counter = 0;
+            bool selectedJoystick = false;
+            m_joystickCombobox.AddItem(counter++, MyTexts.Get(MySpaceTexts.Disabled));
+            foreach (string joystickName in MyInput.Static.EnumerateJoystickNames())
+            {
+                m_joystickCombobox.AddItem(counter, new StringBuilder(joystickName));
+                if (MyInput.Static.JoystickInstanceName == joystickName)
+                {
+                    selectedJoystick = true;
+                    m_joystickCombobox.SelectItemByIndex(counter);
+                }
+                counter++;
+            }
+
+            if (!selectedJoystick)
+                m_joystickCombobox.SelectItemByIndex(0);
+        }
+
+        private void OnSelectJoystick()
+        {
+            MyInput.Static.JoystickInstanceName = m_joystickCombobox.GetSelectedIndex() == 0 ? null : m_joystickCombobox.GetSelectedValue().ToString();
+            RefreshJoystickControlEnabling();
+        }
+
+        private void RefreshJoystickControlEnabling()
+        {
+            bool enable = m_joystickCombobox.GetSelectedIndex() != 0;
+            foreach (var button in m_joystickButtons)
+                button.Enabled = enable;
+            foreach (var axis in m_joystickAxes)
+                axis.Enabled = enable;
+        }
+
         public override string GetFriendlyName()
         {
-            return "MyGuiScreenOptionsControls";
+            return "MyGuiScreenOptionsJoystickControls";
         }
 
         public override bool Update(bool hasFocus)
@@ -311,7 +394,7 @@ namespace Sandbox.Game.Gui
             if (m_controlTypeList.GetSelectedKey() != (int)m_currentControlType)
             {
                 DeactivateControls(m_currentControlType);
-                m_currentControlType = (MyGuiControlTypeEnum)m_controlTypeList.GetSelectedKey();
+                m_currentControlType = (ControlDropdown)m_controlTypeList.GetSelectedKey();
                 ActivateControls(m_currentControlType);
             }
 
@@ -378,6 +461,14 @@ namespace Sandbox.Game.Gui
             MyInput.Static.SetMouseYInversion(m_invertMouseYCheckbox.IsChecked);
             MyInput.Static.SetMouseSensitivity(m_mouseSensitivitySlider.Value);
 
+            if (MyFakes.ENABLE_JOYSTICK_SETTINGS)
+            {
+                MyInput.Static.JoystickInstanceName = m_joystickCombobox.GetSelectedIndex() == 0 ? null : m_joystickCombobox.GetSelectedValue().ToString();
+                MyInput.Static.SetJoystickSensitivity(m_joystickSensitivitySlider.Value);
+                MyInput.Static.SetJoystickExponent(m_joystickExponentSlider.Value);
+                MyInput.Static.SetJoystickDeadzone(m_joystickDeadzoneSlider.Value);
+            }
+
             MyInput.Static.SaveControls(MySandboxGame.Config.ControlsGeneral, MySandboxGame.Config.ControlsButtons);
             MySandboxGame.Config.Save();
 
@@ -392,6 +483,11 @@ namespace Sandbox.Game.Gui
             RefreshButtonTexts(m_key1Buttons);
             RefreshButtonTexts(m_key2Buttons);
             RefreshButtonTexts(m_mouseButtons);
+            if (MyFakes.ENABLE_JOYSTICK_SETTINGS)
+            {
+                RefreshButtonTexts(m_joystickButtons);
+                RefreshButtonTexts(m_joystickAxes);
+            }
         }
 
         private void RefreshButtonTexts(List<MyGuiControlButton> buttons)
@@ -412,30 +508,35 @@ namespace Sandbox.Game.Gui
             MyControl m_controlBeingSet;
             MyGuiInputDeviceEnum m_deviceType;
 
-            List<MyKeys> m_newPressedKeys                             = new List<MyKeys>();
-            List<MyMouseButtonsEnum> m_newPressedMouseButtons       = new List<MyMouseButtonsEnum>();
+            List<MyKeys> m_newPressedKeys = new List<MyKeys>();
+            List<MyMouseButtonsEnum> m_newPressedMouseButtons = new List<MyMouseButtonsEnum>();
+            List<MyJoystickButtonsEnum> m_newPressedJoystickButtons = new List<MyJoystickButtonsEnum>();
+            List<MyJoystickAxesEnum> m_newPressedJoystickAxes = new List<MyJoystickAxesEnum>();
 
-            List<MyKeys> m_oldPressedKeys                             = new List<MyKeys>();
-            List<MyMouseButtonsEnum> m_oldPressedMouseButtons       = new List<MyMouseButtonsEnum>();
+            List<MyKeys> m_oldPressedKeys = new List<MyKeys>();
+            List<MyMouseButtonsEnum> m_oldPressedMouseButtons = new List<MyMouseButtonsEnum>();
+            List<MyJoystickButtonsEnum> m_oldPressedJoystickButtons = new List<MyJoystickButtonsEnum>();
+            List<MyJoystickAxesEnum> m_oldPressedJoystickAxes = new List<MyJoystickAxesEnum>();
 
-            public MyGuiControlAssignKeyMessageBox(MyGuiInputDeviceEnum deviceType, MyControl controlBeingSet, MyStringId messageText) : base(
-                styleEnum: MyMessageBoxStyleEnum.Error,
-                buttonType: MyMessageBoxButtonsType.NONE,
-                messageText: MyTexts.Get(messageText),
-                messageCaption: MyTexts.Get(MySpaceTexts.SelectControl),
-                okButtonText: default(MyStringId),
-                cancelButtonText: default(MyStringId),
-                yesButtonText: default(MyStringId),
-                noButtonText: default(MyStringId),
-                callback: null,
-                timeoutInMiliseconds: 0,
-                focusedResult: ResultEnum.YES,
-                canHideOthers: true)
+            public MyGuiControlAssignKeyMessageBox(MyGuiInputDeviceEnum deviceType, MyControl controlBeingSet, MyStringId messageText)
+                : base(
+                    styleEnum: MyMessageBoxStyleEnum.Error,
+                    buttonType: MyMessageBoxButtonsType.NONE,
+                    messageText: MyTexts.Get(messageText),
+                    messageCaption: MyTexts.Get(MySpaceTexts.SelectControl),
+                    okButtonText: default(MyStringId),
+                    cancelButtonText: default(MyStringId),
+                    yesButtonText: default(MyStringId),
+                    noButtonText: default(MyStringId),
+                    callback: null,
+                    timeoutInMiliseconds: 0,
+                    focusedResult: ResultEnum.YES,
+                    canHideOthers: true)
             {
-                DrawMouseCursor     = false;
-                m_isTopMostScreen   = false;
-                m_controlBeingSet   = controlBeingSet;
-                m_deviceType        = deviceType;
+                DrawMouseCursor = false;
+                m_isTopMostScreen = false;
+                m_controlBeingSet = controlBeingSet;
+                m_deviceType = deviceType;
 
                 MyInput.Static.GetListOfPressedKeys(m_oldPressedKeys);
                 MyInput.Static.GetListOfPressedMouseButtons(m_oldPressedMouseButtons);

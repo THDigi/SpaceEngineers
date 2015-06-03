@@ -13,7 +13,7 @@ namespace SpaceEngineers.Game.GUI
     class MyGuiScreenOptionsSpace : MyGuiScreenBase
     {
         public MyGuiScreenOptionsSpace()
-            : base(new Vector2(0.5f, 0.5f), MyGuiConstants.SCREEN_BACKGROUND_COLOR, new Vector2(574f / 1600f, 570 / 1200f), false, null)
+            : base(new Vector2(0.5f, 0.5f), MyGuiConstants.SCREEN_BACKGROUND_COLOR, new Vector2(574f / 1600f, 570 / 1000f), false, null)
         {
             EnabledBackgroundFade = true;
 
@@ -67,8 +67,13 @@ namespace SpaceEngineers.Game.GUI
 
             Controls.Add(new MyGuiControlButton(
                 position: menuPositionOrigin + index++ * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA,
-                text: MyTexts.Get(MySpaceTexts.ScreenOptionsButtonControls),
+                text: MyTexts.Get(VRage.Utils.MyStringId.GetOrCompute("Keyboard & Mouse")),
                 onButtonClick: OnControlsClick));
+
+            Controls.Add(new MyGuiControlButton(
+                position: menuPositionOrigin + index++ * MyGuiConstants.MENU_BUTTONS_POSITION_DELTA,
+                text: MyTexts.Get(VRage.Utils.MyStringId.GetOrCompute("Joystick or Gamepad")),
+                onButtonClick: OnJoystickControlsClick));
 
             CloseButtonEnabled = true;
         }
@@ -100,6 +105,11 @@ namespace SpaceEngineers.Game.GUI
         public void OnControlsClick(MyGuiControlButton sender)
         {
             MyGuiSandbox.AddScreen(new MyGuiScreenOptionsControls());
+        }
+
+        public void OnJoystickControlsClick(MyGuiControlButton sender)
+        {
+            MyGuiSandbox.AddScreen(new MyGuiScreenOptionsJoystickControls());
         }
 
         public void OnBackClick(MyGuiControlButton sender)

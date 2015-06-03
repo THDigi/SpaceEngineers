@@ -56,7 +56,7 @@ namespace VRage.Input
         public static readonly MyStringId CX_GUI = MyStringId.GetOrCompute("GUI");
         public static readonly MyStringId CX_CHARACTER = MyStringId.GetOrCompute("CHARACTER");
 
-        private interface IControl
+        public interface IControl
         {
             byte Code { get; }
             bool IsNewPressed();
@@ -66,7 +66,7 @@ namespace VRage.Input
             char ControlCode();
         }
 
-        private class Context
+        public class Context
         {
             public Context ParentContext;
             public Dictionary<MyStringId, IControl> Bindings;
@@ -94,7 +94,7 @@ namespace VRage.Input
             }
         }
 
-        private class EmptyControl : IControl
+        public class EmptyControl : IControl
         {
             public byte Code { get { return 0; } }
 
@@ -124,7 +124,7 @@ namespace VRage.Input
             }
         }
 
-        private class JoystickAxis : IControl
+        public class JoystickAxis : IControl
         {
             public MyJoystickAxesEnum Axis;
 
@@ -158,7 +158,7 @@ namespace VRage.Input
             }
         }
 
-        private class JoystickButton : IControl
+        public class JoystickButton : IControl
         {
             public MyJoystickButtonsEnum Button;
 
@@ -194,6 +194,11 @@ namespace VRage.Input
 
         private static EmptyControl m_nullControl = new EmptyControl();
         private static Dictionary<MyStringId, Context> m_bindings = new Dictionary<MyStringId, Context>();
+
+        public static Dictionary<MyStringId, Context> GetControls()
+        {
+            return m_bindings;
+        }
 
         static MyControllerHelper()
         {
