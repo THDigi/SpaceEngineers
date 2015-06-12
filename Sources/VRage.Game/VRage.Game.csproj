@@ -76,8 +76,11 @@
     <Compile Include="Entity\MyEntityIdentifier.cs" />
     <Compile Include="Entity\UseObject\IMyUseObject.cs" />
     <Compile Include="Entity\UseObject\MyUseObjectFactory.cs" />
+    <Compile Include="ModAPI\IMyControl.cs" />
     <Compile Include="ModAPI\IMyEntity.cs" />
     <Compile Include="ModAPI\IMyRemapHelper.cs" />
+    <Compile Include="ModAPI\IMyUserInput.cs" />
+    <Compile Include="MyControlWrapper.cs" />
     <Compile Include="ObjectBuilders\AI\BehaviorTree\MyObjectBuilder_BehaviorControlBaseNode.cs" />
     <Compile Include="ObjectBuilders\AI\BehaviorTree\MyObjectBuilder_BehaviorTreeActionNode.cs" />
     <Compile Include="ObjectBuilders\AI\BehaviorTree\MyObjectBuilder_BehaviorTreeControlNodeMemory.cs" />

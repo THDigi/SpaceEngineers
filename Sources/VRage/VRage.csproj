@@ -117,6 +117,7 @@
     <Compile Include="Input\MyInput.cs" />
     <Compile Include="Input\MyJoystickAxesEnum.cs" />
     <Compile Include="Input\MyJoystickButtonsEnum.cs" />
+    <Compile Include="Input\MyJoystickDPadEnum.cs" />
     <Compile Include="Input\MyKeys.cs" />
     <Compile Include="Input\MyMouseButtonsEnum.cs" />
     <Compile Include="Input\MyNullInput.cs" />

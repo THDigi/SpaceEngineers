@@ -6,6 +6,7 @@ using System.Text;
 using Sandbox.ModAPI.Interfaces;
 using VRage.Utils;
 using VRage.Library.Utils;
+using VRage.ModAPI;
 
 namespace Sandbox.Game.World
 {
@@ -422,6 +423,11 @@ namespace Sandbox.Game.World
         {
             add { MySession.OnLoading += value; }
             remove { MySession.OnLoading -= value; }
+        }
+
+        IMyUserInput IMySession.Input
+        {
+            get { return VRage.Input.MyInput.Static as IMyUserInput; }
         }
     }
 }

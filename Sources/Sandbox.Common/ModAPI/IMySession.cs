@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using VRage.Library.Utils;
 using VRage.Utils;
+using VRage.ModAPI;
 
 namespace Sandbox.ModAPI
 {
@@ -89,5 +90,6 @@ namespace Sandbox.ModAPI
         IMyGpsCollection GPS { get; }
         event Action OnSessionReady;
         event Action OnSessionLoading;
+        IMyUserInput Input { get; }
     }
 }
