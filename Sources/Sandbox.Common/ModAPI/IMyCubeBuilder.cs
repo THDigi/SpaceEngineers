@@ -84,12 +84,12 @@ namespace Sandbox.ModAPI
         void StartNewGridPlacement(Sandbox.Common.ObjectBuilders.MyCubeSize cubeSize, bool isStatic);
 
         /// <summary>
-        /// Enables synmetry block placing
+        /// Returns/sets synmetry block placing
         /// </summary>
         bool UseSymmetry { get; set; }
 
         /// <summary>
-        /// 
+        /// Returns/sets if the block ghosts use transparency.
         /// </summary>
         bool UseTransparency { get; set; }
 
@@ -104,6 +104,18 @@ namespace Sandbox.ModAPI
         /// </summary>
         bool IsActivated { get; }
 
+        /// <summary>
+        /// Wether block painting is allowed
+        /// </summary>
+        bool BlockColoringAllowed { get; }
+
+        /// <summary>
+        /// Set wether block painting is allowed.
+        /// This also overwrites the block placed color to the default gray.
+        /// Player's color list and color picking abilities are not affected.
+        /// </summary>
+        /// <param name="set"></param>
+        void SetBlockColoringAllowed(bool set);
 
         //Missing dependencies
         //Sandbox.Definitions.MyCubeBlockDefinition CurrentBlockDefinition { get; set; }

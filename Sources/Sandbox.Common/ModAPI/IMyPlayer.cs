@@ -19,5 +19,11 @@ namespace Sandbox.ModAPI
         string DisplayName { get; }
         long PlayerID { get; }
         long IdentityId { get; }
+
+        int SelectedColorSlot { get; }
+        Vector3 SelectedColor { get; }
+        Vector3 GetColorFromList(int slot);
+        void GetColorList(List<Vector3> colors);
+        void GetDefaultColorList(List<Vector3> colors);
     }
 }

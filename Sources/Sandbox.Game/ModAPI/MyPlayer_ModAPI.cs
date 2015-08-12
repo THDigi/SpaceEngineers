@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using IMyControllableEntity = Sandbox.ModAPI.Interfaces.IMyControllableEntity;
 using IMyGameControllableEntity = Sandbox.Game.Entities.IMyControllableEntity;
+using VRageMath;
 
 namespace Sandbox.Game.World
 {
@@ -66,6 +67,40 @@ namespace Sandbox.Game.World
         long IMyPlayer.IdentityId
         {
             get { return Identity.IdentityId; }
+        }
+
+        int IMyPlayer.SelectedColorSlot
+        {
+            get { return SelectedBuildColorSlot; }
+        }
+
+        Vector3 IMyPlayer.SelectedColor
+        {
+            get { return SelectedBuildColor; }
+        }
+
+        Vector3 IMyPlayer.GetColorFromList(int slot)
+        {
+            if (m_buildColorHSVSlots.Count >= slot)
+                throw new ArgumentOutOfRangeException("The slot must be smaller or equal to " + (m_buildColorHSVSlots.Count - 1) + "!");
+
+            return m_buildColorHSVSlots[slot];
+        }
+
+        void IMyPlayer.GetColorList(List<Vector3> colors)
+        {
+            foreach(var color in m_buildColorHSVSlots)
+            {
+                colors.Add(color);
+            }
+        }
+
+        void IMyPlayer.GetDefaultColorList(List<Vector3> colors)
+        {
+            foreach (var color in m_buildColorDefaults)
+            {
+                colors.Add(color);
+            }
         }
     }
 }

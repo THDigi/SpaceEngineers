@@ -99,6 +99,8 @@ namespace Sandbox.Game.Entities
             public Vector3I End;
         }
 
+        private bool m_blockColoringAllowed = true;
+
         static MyColoringArea[] m_currColoringArea = new MyColoringArea[8];
 
         static List<Vector3I> m_cacheGridIntersections = new List<Vector3I>();
@@ -1679,7 +1681,7 @@ namespace Sandbox.Game.Entities
                 }
             }
 
-            if (CurrentGrid != null && MyControllerHelper.IsControl(context, MyControlsSpace.CUBE_COLOR_CHANGE, MyControlStateType.PRESSED))
+            if (CurrentGrid != null && m_blockColoringAllowed && MyControllerHelper.IsControl(context, MyControlsSpace.CUBE_COLOR_CHANGE, MyControlStateType.PRESSED))
             {
                 int expand = MyInput.Static.IsAnyCtrlKeyPressed() ? 1 : 0;
                 expand = MyInput.Static.IsAnyShiftKeyPressed() ? 3 : expand;
@@ -2712,7 +2714,7 @@ namespace Sandbox.Game.Entities
             if (m_blocksBuildQueue.Count > 0)
             {
                 MyGuiAudio.PlaySound(MyGuiSounds.HudPlaceBlock);
-                CurrentGrid.BuildBlocks(MyPlayer.SelectedColor, m_blocksBuildQueue, MySession.LocalCharacterEntityId);
+                CurrentGrid.BuildBlocks((m_blockColoringAllowed ? MyPlayer.SelectedColor : MyPlayer.DefaultColor), m_blocksBuildQueue, MySession.LocalCharacterEntityId);
             }
         }
 

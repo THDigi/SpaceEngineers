@@ -108,13 +108,13 @@ namespace Sandbox.Game.World
 		
 		private int m_selectedBuildColorSlot = 0;
 		public int SelectedBuildColorSlot { get { return m_selectedBuildColorSlot; } set { m_selectedBuildColorSlot = MathHelper.Clamp(value, 0, m_buildColorHSVSlots.Count-1); } }
-
 		public Vector3 SelectedBuildColor { get { return m_buildColorHSVSlots[m_selectedBuildColorSlot]; } set { m_buildColorHSVSlots[m_selectedBuildColorSlot] = value; } }
-
+        
 		// MK: TODO: Remove these static properties for bot colours
 		public static int SelectedColorSlot { get { return MySession.LocalHumanPlayer != null ? MySession.LocalHumanPlayer.SelectedBuildColorSlot : 0; } }
 		public static Vector3 SelectedColor { get { return MySession.LocalHumanPlayer != null ? MySession.LocalHumanPlayer.SelectedBuildColor : m_buildColorDefaults[0]; } }
-		public static ListReader<Vector3> ColorSlots { get { return MySession.LocalHumanPlayer != null ? MySession.LocalHumanPlayer.BuildColorSlots : new ListReader<Vector3>(m_buildColorDefaults); } }
+        public static Vector3 DefaultColor { get { return m_buildColorDefaults[0]; } }
+        public static ListReader<Vector3> ColorSlots { get { return MySession.LocalHumanPlayer != null ? MySession.LocalHumanPlayer.BuildColorSlots : new ListReader<Vector3>(m_buildColorDefaults); } }
 
 		private static readonly List<Vector3> m_buildColorDefaults = new List<Vector3>(m_buildColorSlotCount);
 

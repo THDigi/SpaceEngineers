@@ -129,5 +129,15 @@ namespace Sandbox.Game.Entities
         {
             get { return IsActivated; }
         }
+
+        bool IMyCubeBuilder.BlockColoringAllowed
+        {
+            get { return m_blockColoringAllowed; }
+        }
+
+        void IMyCubeBuilder.SetBlockColoringAllowed(bool set)
+        {
+            m_blockColoringAllowed = set;
+        }
     }
 }
